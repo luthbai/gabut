@@ -1,11 +1,15 @@
 <?php
+// TAMBAHKAN 3 BARIS INI UNTUK MELIHAT ERROR PHP
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Set header respons sebagai JSON
 header('Content-Type: application/json');
 
 // -----------------------------------------------------------------
-// MASUKKAN API KEY ANDA DI SINI
-// JANGAN PERNAH MENARUH API KEY INI DI FILE HTML ATAU JAVASCRIPT!
-$CLIPDROP_API_KEY = "cafb74dadf12a521bbea0f71a52e08e48eff75b64a7e2da82b211badb820c9a673e96af32f78b99ba7235bf28a955b6b"; 
+// MASUKKAN API KEY CLIPDROP ANDA DI SINI
+$CLIPDROP_API_KEY = "fe30029d9068f23de3233bd0033397f19d41816931efa5ac083b0e243b83fee20bc2d26bdb97570e47a00663a4aef9d5"; 
 // -----------------------------------------------------------------
 
 // 1. Validasi Request
@@ -21,9 +25,9 @@ if (!isset($_FILES['imageFile'])) {
     exit;
 }
 
-// 2. Validasi File
+// 2. Validasi File (Anda bisa sesuaikan batasannya)
 $file = $_FILES['imageFile'];
-$maxFileSize = 10 * 1024 * 1024; // 10 MB (sesuaikan dengan batas ClipDrop)
+$maxFileSize = 10 * 1024 * 1024; // 10 MB
 $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -31,13 +35,11 @@ if ($file['error'] !== UPLOAD_ERR_OK) {
     echo json_encode(['error' => 'Terjadi kesalahan saat mengunggah file.', 'upload_error' => $file['error']]);
     exit;
 }
-
 if ($file['size'] > $maxFileSize) {
     http_response_code(413); // Payload Too Large
     echo json_encode(['error' => 'Ukuran file terlalu besar (maksimal 10MB).']);
     exit;
 }
-
 if (!in_array($file['type'], $allowedMimeTypes)) {
     http_response_code(415); // Unsupported Media Type
     echo json_encode(['error' => 'Tipe file tidak didukung. Hanya JPG, PNG, GIF, WebP.']);
@@ -49,9 +51,10 @@ $imagePath = $file['tmp_name'];
 $imageMime = $file['type'];
 $imageName = $file['name'];
 
-// Endpoint ClipDrop untuk upscaling (seringkali memperbaiki blur dan noise)
-// Periksa dokumentasi ClipDrop untuk endpoint yang lebih spesifik jika ada.
-$clipdropEndpoint = "https://api.clipdrop.co/image-editing/v1/upscale"; 
+// --- PERUBAHAN UTAMA DI SINI ---
+// Kita ganti endpoint dari 'upscale' ke 'unblur'
+$clipdropEndpoint = "https://api.clipdrop.co/image-editing/v1/unblur"; 
+// ------------------------------
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $clipdropEndpoint);
@@ -61,13 +64,10 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "x-api-key: " . $CLIPDROP_API_KEY
 ]);
 
-// Siapkan data POST multipart/form-data
 $postFields = [
-    // Gunakan CURLFile untuk mengirim file dengan benar
     'image_file' => new CURLFile($imagePath, $imageMime, $imageName)
 ];
 curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
-// Set header 'Content-Type: multipart/form-data' akan ditangani otomatis oleh cURL
 
 // 4. Eksekusi cURL
 $response = curl_exec($ch);
@@ -77,36 +77,24 @@ curl_close($ch);
 
 // 5. Tangani Respons dari ClipDrop
 if ($httpCode === 200) {
-    // Sukses! API mengembalikan data gambar biner.
-    // Encode ke Base64 agar aman dikirim melalui JSON.
+    // Sukses!
     $imageDataBase64 = base64_encode($response);
-    
-    // Kirim respons sukses ke JavaScript
     echo json_encode([
         'success' => true, 
         'imageData' => $imageDataBase64, 
-        'mimeType' => 'image/png' // ClipDrop upscale biasanya mengembalikan PNG
+        'mimeType' => 'image/png' // ClipDrop biasanya mengembalikan PNG
     ]);
 } else {
     // Gagal
-    http_response_code(502); // Bad Gateway (error dari server eksternal)
-    
-    // Coba decode respons error dari ClipDrop (biasanya JSON)
+    http_response_code(502); // Bad Gateway
     $errorDetails = json_decode($response, true);
-    if (json_last_error() === JSON_ERROR_NONE) {
-        // Jika responsnya JSON, kirimkan detail errornya
-        echo json_encode([
-            'error' => 'Gagal memproses gambar dengan ClipDrop API.',
-            'details' => $errorDetails['error'] ?? 'Error tidak diketahui dari ClipDrop'
-        ]);
-    } else {
-        // Jika responsnya bukan JSON (misal, teks error)
-        echo json_encode([
-            'error' => 'Gagal memproses gambar dengan ClipDrop API.',
-            'details' => 'Server ClipDrop mengembalikan HTTP Code ' . $httpCode,
-            'raw_response' => $response,
-            'curl_error' => $curlError
-        ]);
-    }
+    
+    echo json_encode([
+        'error' => 'Gagal memproses gambar dengan ClipDrop API.',
+        'details' => $errorDetails['error'] ?? 'Error tidak diketahui dari ClipDrop',
+        'http_code' => $httpCode,
+        'curl_error' => $curlError,
+        'raw_response' => $response
+    ]);
 }
 ?>
