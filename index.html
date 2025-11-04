@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alat Penghilang Blur Gambar - Teknik Lanjutan</title>
+    <title>Unblur & Sharpen Image - Foto Tajam dan Jernih</title>
     <style>
         * {
             margin: 0;
@@ -14,704 +14,573 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
             text-align: center;
-            padding: 30px 0;
-            margin-bottom: 30px;
         }
 
         h1 {
-            font-size: 2.5rem;
+            color: #2c3e50;
             margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 2.5em;
         }
 
         .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            color: #7f8c8d;
             margin-bottom: 30px;
+            font-size: 1.1em;
         }
 
-        .upload-section, .result-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
+        .upload-container {
+            margin: 25px 0;
+            padding: 30px;
+            border: 2px dashed #3498db;
+            border-radius: 15px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 600;
+        .upload-container:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #2c3e50;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .image-preview {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .image-preview h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
         .canvas-container {
             width: 100%;
-            height: 300px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            display: block;
-            margin: 0 auto;
-            position: relative; 
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        .canvas-container canvas {
-            display: block;
-            margin: 0 auto;
-            border-radius: 12px;
-        }
-
-        .upload-area {
-            text-align: center;
-            padding: 40px 20px;
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            margin-top: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .upload-area:hover {
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .upload-text {
-            margin-top: 15px;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            text-align: center;
-        }
-        
-        #resultInfo {
-             margin-top: 15px;
-        }
-
-        .download-btn {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: linear-gradient(135deg, #4ade80 0%, #22d3ee 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            opacity: 0.9;
-            transition: all 0.3s ease;
-            z-index: 10;
-        }
-
-        .download-btn:hover {
-            opacity: 1;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .download-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
         .controls {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .technique-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .technique-card {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .technique-card:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .technique-card.active {
-            border-color: #4ade80;
-            background: rgba(74, 222, 128, 0.15);
-        }
-
-        .technique-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .technique-desc {
-            font-size: 0.85rem;
-            opacity: 0.8;
-            line-height: 1.4;
-        }
-
-        .action-buttons {
+            margin: 30px 0;
             display: flex;
-            gap: 15px;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container label {
+            color: #2c3e50;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #3498db;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #2c3e50;
+            cursor: pointer;
+        }
+
+        .buttons {
+            display: flex;
             justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 50px;
+            font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
-            color: #667eea;
-            min-width: 150px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #2c3e50;
+            border: 2px solid #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #2c3e50;
+            color: white;
         }
 
         .btn:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #4ade80 0%, #22d3ee 100%);
+        .download-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
         }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        .info-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            opacity: 0.9;
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
         }
 
         .loading {
             display: none;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            opacity: 0.8;
+            margin: 20px 0;
+            color: #3498db;
+            font-weight: 500;
         }
 
-        .spinner {
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 2px solid white;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            opacity: 0.7;
-            font-size: 0.9rem;
+        .footer {
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9em;
         }
 
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
+            .preview-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .container {
+                padding: 25px;
             }
             
             h1 {
-                font-size: 2rem;
-            }
-            
-            .technique-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .download-btn {
-                top: 15px;
-                right: 15px;
-                padding: 6px 12px;
-                font-size: 0.8rem;
+                font-size: 2em;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Alat Penghilang Blur Gambar</h1>
-            <p class="subtitle">Unggah gambar blur Anda dan terapkan teknik penghilang blur canggih termasuk simulasi (Inverse, Wiener, Lucy-Richardson) dan metode berbasis Deep Learning dengan AI.</p>
-        </header>
+        <h1>✨ Unblur & Sharpen Image</h1>
+        <p class="subtitle">Upload foto blur Anda dan buat menjadi tajam, jernih, dan jelas dalam hitungan detik!</p>
 
-        <div class="main-content">
-            <div class="upload-section">
-                <h2 class="section-title">Unggah Gambar Blur</h2>
-                <div id="uploadCanvasContainer" class="canvas-container"></div>
-                <div class="upload-area" id="uploadArea">
-                    <p>Klik untuk mengunggah atau seret & lepas gambar blur Anda</p>
-                    <p class="upload-text">Format yang didukung: JPG, PNG, GIF</p>
+        <div class="upload-container" id="dropZone">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Klik atau drag & drop foto Anda di sini</div>
+            <input type="file" id="imageInput" class="file-input" accept="image/*">
+        </div>
+
+        <div class="loading" id="loading">Memproses gambar... Mohon tunggu</div>
+
+        <div class="preview-container">
+            <div class="image-preview">
+                <h3>📸 Foto Asli</h3>
+                <div class="canvas-container">
+                    <canvas id="originalCanvas"></canvas>
                 </div>
             </div>
-
-            <div class="result-section">
-                <h2 class="section-title">Hasil Penghilangan Blur</h2>
-                <button class="download-btn" id="downloadResultBtn" disabled>Unduh Hasil</button>
-                <div id="resultCanvasContainer" class="canvas-container"></div>
-                <p class="upload-text" id="resultInfo">Pilih teknik dan klik "Hilangkan Blur" untuk melihat hasil</p>
+            <div class="image-preview">
+                <h3>✨ Hasil yang Diperjelas</h3>
+                <div class="canvas-container">
+                    <canvas id="resultCanvas"></canvas>
+                </div>
             </div>
         </div>
 
         <div class="controls">
-            <h2 class="section-title">Teknik Penghilang Blur</h2>
-            <div class="technique-grid">
-                <div class="technique-card" data-technique="inverse">
-                    <div class="technique-name">Filtering Invers (Simulasi)</div>
-                    <div class="technique-desc">Pendekatan domain frekuensi sederhana. Cepat tetapi sensitif terhadap noise. (Simulasi)</div>
-                </div>
-                <div class="technique-card" data-technique="wiener">
-                    <div class="technique-name">Filtering Wiener (Simulasi)</div>
-                    <div class="technique-desc">Filter linear optimal yang meminimalkan kesalahan. Menangani noise lebih baik. (Simulasi)</div>
-                </div>
-                <div class="technique-card" data-technique="lucy">
-                    <div class="technique-name">Lucy-Richardson (Simulasi)</div>
-                    <div class="technique-desc">Algoritma dekonvolusi iteratif berbasis inferensi Bayesian. (Simulasi)</div>
-                </div>
-                <div class="technique-card" data-technique="ai">
-                    <div class="technique-name">Deep Learning (AI)</div>
-                    <div class="technique-desc">Menggunakan AI (via ClipDrop) untuk menganalisis dan merekonstruksi gambar menjadi lebih jernih dan detail.</div>
-                </div>
+            <div class="slider-container">
+                <label for="sharpenSlider">Kekuatan Sharpening: <span id="sharpenValue">1.0</span></label>
+                <input type="range" id="sharpenSlider" class="slider" min="0.1" max="3.0" step="0.1" value="1.0">
             </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="deblurBtn" disabled>Hilangkan Blur</button>
-                <button class="btn btn-secondary" id="resetBtn" disabled>Reset</button>
-            </div>
-
-            <div class="loading" id="loadingIndicator">
-                <div class="spinner"></div>
-                <p id="loadingText">Memproses gambar...</p>
-            </div>
-
-            <div class="info-panel">
-                <strong>Catatan:</strong> Teknik Deep Learning menggunakan layanan eksternal (ClipDrop AI). Pastikan koneksi internet Anda stabil untuk penggunaan fitur ini. Teknik lainnya adalah simulasi di browser.
+            <div class="slider-container">
+                <label for="contrastSlider">Kontras: <span id="contrastValue">1.0</span></label>
+                <input type="range" id="contrastSlider" class="slider" min="0.5" max="2.0" step="0.1" value="1.2">
             </div>
         </div>
 
-        <footer>
-            <p>Alat Penghilang Blur Gambar • Menampilkan Simulasi dan Deep Learning dengan AI</p>
-        </footer>
+        <div class="buttons">
+            <button class="btn btn-primary" id="processBtn" disabled>
+                🚀 Proses Gambar
+            </button>
+            <button class="btn btn-secondary" id="resetBtn" disabled>
+                ♻️ Reset
+            </button>
+            <button class="btn download-btn" id="downloadBtn" disabled>
+                💾 Download Hasil
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>Website ini menggunakan teknologi HTML5 Canvas untuk memproses gambar secara langsung di browser Anda.</p>
+        </div>
     </div>
 
     <script>
-        // --- Variabel Global ---
-        let originalImage = null;   // Gambar asli yang di-upload (resolusi penuh)
-        let processedImage = null;  // Gambar hasil proses (AI atau simulasi, resolusi penuh)
-        let currentTechnique = null;
-        let hasResult = false;
-        
-        let uploadCanvas, resultCanvas;
-        let uploadCtx, resultCtx;
+        // Variables
+        let originalImage = null;
+        const imageInput = document.getElementById('imageInput');
+        const dropZone = document.getElementById('dropZone');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loading = document.getElementById('loading');
+        const sharpenSlider = document.getElementById('sharpenSlider');
+        const contrastSlider = document.getElementById('contrastSlider');
+        const sharpenValue = document.getElementById('sharpenValue');
+        const contrastValue = document.getElementById('contrastValue');
 
-        // --- Nama File Backend PHP Anda ---
-        const PROCESSING_ENDPOINT = "deblur_image.php";
+        // Event listeners
+        dropZone.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', handleImageUpload);
         
-        // --- Inisialisasi ---
-        window.addEventListener('load', () => {
-            setupCanvases();
-            setupEventListeners();
+        // Drag and drop support
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#2196f3';
+            dropZone.style.backgroundColor = '#e3f2fd';
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#3498db';
+            dropZone.style.backgroundColor = '#f8f9fa';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#3498db';
+            dropZone.style.backgroundColor = '#f8f9fa';
+            
+            if (e.dataTransfer.files.length) {
+                imageInput.files = e.dataTransfer.files;
+                handleImageUpload();
+            }
+        });
+        
+        processBtn.addEventListener('click', processImage);
+        resetBtn.addEventListener('click', resetImage);
+        downloadBtn.addEventListener('click', downloadResult);
+        
+        sharpenSlider.addEventListener('input', () => {
+            sharpenValue.textContent = sharpenSlider.value;
+        });
+        
+        contrastSlider.addEventListener('input', () => {
+            contrastValue.textContent = contrastSlider.value;
         });
 
-        function setupCanvases() {
-            const uploadCanvasContainer = document.getElementById('uploadCanvasContainer');
-            uploadCanvas = document.createElement('canvas');
-            uploadCanvas.width = uploadCanvasContainer.offsetWidth;
-            uploadCanvas.height = 300;
-            uploadCtx = uploadCanvas.getContext('2d');
-            uploadCanvasContainer.appendChild(uploadCanvas);
-
-            const resultCanvasContainer = document.getElementById('resultCanvasContainer');
-            resultCanvas = document.createElement('canvas');
-            resultCanvas.width = resultCanvasContainer.offsetWidth;
-            resultCanvas.height = 300;
-            resultCtx = resultCanvas.getContext('2d');
-            resultCanvasContainer.appendChild(resultCanvas);
-
-            drawPlaceholder(uploadCtx, 'Unggah gambar blur Anda');
-            drawPlaceholder(resultCtx, 'Hasil penghilangan blur akan muncul di sini');
-        }
-
-        function drawPlaceholder(ctx, text) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.font = '16px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, ctx.canvas.width / 2, ctx.canvas.height / 2);
-        }
-
-        function setupEventListeners() {
-            document.getElementById('uploadArea').addEventListener('click', () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = handleFileSelect;
-                input.click();
-            });
-
-            document.querySelectorAll('.technique-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.technique-card').forEach(c => c.classList.remove('active'));
-                    card.classList.add('active');
-                    currentTechnique = card.dataset.technique;
-                    document.getElementById('deblurBtn').disabled = !originalImage;
-                });
-            });
-
-            document.getElementById('deblurBtn').addEventListener('click', applyDeblurring);
-            document.getElementById('resetBtn').addEventListener('click', resetAll);
-            document.getElementById('downloadResultBtn').addEventListener('click', downloadResult);
-            window.addEventListener('resize', handleResize);
-        }
-
-        // --- Logika Penanganan File ---
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file || !file.type.match('image.*')) return;
-
+        // Handle image upload
+        function handleImageUpload() {
+            const file = imageInput.files[0];
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                alert('File yang diupload bukan gambar!');
+                return;
+            }
+            
             const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    originalImage = img; // Simpan gambar asli (resolusi penuh)
-                    processedImage = null; // Reset gambar yang sudah diproses
-                    
-                    drawImageOnCanvas(uploadCtx, originalImage); // Tampilkan di canvas upload
-                    
-                    document.getElementById('resetBtn').disabled = false;
-                    document.getElementById('deblurBtn').disabled = !currentTechnique;
-                    
-                    // Bersihkan canvas hasil
-                    resetResultCanvas();
+            
+            reader.onload = function(e) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    displayOriginalImage();
+                    processBtn.disabled = false;
+                    resetBtn.disabled = false;
                 };
-                img.src = e.target.result;
+                originalImage.src = e.target.result;
             };
+            
             reader.readAsDataURL(file);
         }
 
-        /**
-         * Menggambar gambar (Image object) ke canvas (Context)
-         * dengan rasio aspek yang pas (fit).
-         */
-        function drawImageOnCanvas(ctx, img) {
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            const canvasRatio = ctx.canvas.width / ctx.canvas.height;
-            const imgRatio = img.naturalWidth / img.naturalHeight;
-            let drawWidth, drawHeight, x, y;
-
-            if (imgRatio > canvasRatio) {
-                drawWidth = ctx.canvas.width;
-                drawHeight = drawWidth / imgRatio;
-                x = 0;
-                y = (ctx.canvas.height - drawHeight) / 2;
-            } else {
-                drawHeight = ctx.canvas.height;
-                drawWidth = drawHeight * imgRatio;
-                x = (ctx.canvas.width - drawWidth) / 2;
-                y = 0;
-            }
-            ctx.drawImage(img, x, y, drawWidth, drawHeight);
+        // Display original image
+        function displayOriginalImage() {
+            const ctx = originalCanvas.getContext('2d');
+            
+            // Calculate dimensions to maintain aspect ratio
+            const maxWidth = 400;
+            const maxHeight = 400;
+            const ratio = Math.min(maxWidth / originalImage.width, maxHeight / originalImage.height);
+            const width = originalImage.width * ratio;
+            const height = originalImage.height * ratio;
+            
+            // Set canvas dimensions
+            originalCanvas.width = width;
+            originalCanvas.height = height;
+            
+            // Draw image
+            ctx.drawImage(originalImage, 0, 0, width, height);
+            
+            // Copy to result canvas initially
+            resultCanvas.width = width;
+            resultCanvas.height = height;
+            const resultCtx = resultCanvas.getContext('2d');
+            resultCtx.drawImage(originalImage, 0, 0, width, height);
         }
 
-        // --- Logika Proses Inti ---
-
-        async function applyDeblurring() {
-            if (!originalImage || !currentTechnique) return;
-
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const loadingText = document.getElementById('loadingText');
+        // Process image with sharpening and enhancement
+        function processImage() {
+            if (!originalImage) return;
             
-            setLoading(true); // Mulai loading
-
-            try {
-                if (currentTechnique === 'ai') {
-                    loadingText.textContent = "Memproses dengan AI (ClipDrop)...";
-                    await applyAIDeblurring();
-                } else {
-                    loadingText.textContent = "Mensimulasikan filter...";
-                    // Simulasi bisa jadi sangat cepat, beri sedikit delay palsu
-                    await new Promise(resolve => setTimeout(resolve, 50)); 
-                    await applySimulatedDeblurring();
-                }
-            } catch (error) {
-                console.error('Error applying deblurring:', error);
-                alert('Terjadi kesalahan saat memproses gambar: ' + error.message);
-                resetResultCanvas();
-            } finally {
-                setLoading(false); // Selesai loading
-            }
+            loading.style.display = 'block';
+            processBtn.disabled = true;
+            
+            setTimeout(() => {
+                const sharpenAmount = parseFloat(sharpenSlider.value);
+                const contrastAmount = parseFloat(contrastSlider.value);
+                
+                applySharpeningFilter(sharpenAmount, contrastAmount);
+                
+                loading.style.display = 'none';
+                processBtn.disabled = false;
+                downloadBtn.disabled = false;
+            }, 100);
         }
 
-        /**
-         * Mengirim gambar ke backend PHP untuk diproses oleh AI (ClipDrop).
-         */
-        async function applyAIDeblurring() {
-            // Konversi gambar asli (resolusi penuh) ke Blob
-            const blob = await new Promise(resolve => {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = originalImage.naturalWidth;
-                tempCanvas.height = originalImage.naturalHeight;
-                tempCanvas.getContext('2d').drawImage(originalImage, 0, 0);
-                tempCanvas.toBlob(resolve, 'image/png', 0.9);
-            });
-
-            const imageFile = new File([blob], "image.png", { type: "image/png" });
+        // Apply sharpening filter using canvas
+        function applySharpeningFilter(sharpenAmount, contrastAmount) {
+            const canvas = resultCanvas;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
             
-            const formData = new FormData();
-            formData.append('imageFile', imageFile);
-
-            // Panggil backend PHP
-            const response = await fetch(PROCESSING_ENDPOINT, {
-                method: 'POST',
-                body: formData 
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || data.error) {
-                const errorMessage = data.error || 'Terjadi kesalahan tidak dikenal saat menghubungi backend.';
-                throw new Error(errorMessage + (data.details ? ' Detail: ' + data.details : ''));
-            }
-
-            // Jika berhasil, data.imageData berisi Base64
-            const newImage = new Image();
-            await new Promise((resolve, reject) => {
-                newImage.onload = resolve;
-                newImage.onerror = reject;
-                newImage.src = `data:${data.mimeType || 'image/png'};base64,` + data.imageData;
-            });
-            
-            processedImage = newImage; // Simpan gambar hasil (resolusi penuh)
-            drawImageOnCanvas(resultCtx, processedImage); // Tampilkan di canvas hasil
-            
-            hasResult = true;
-            document.getElementById('resultInfo').textContent = 'Diterapkan: Deep Learning (AI) • Hasil AI';
-        }
-
-        /**
-         * Menerapkan filter simulasi pada gambar resolusi penuh.
-         */
-        async function applySimulatedDeblurring() {
-            // 1. Buat canvas sementara dengan resolusi penuh (ASLI)
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = originalImage.naturalWidth;
-            tempCanvas.height = originalImage.naturalHeight;
-            const tempCtx = tempCanvas.getContext('2d');
-            
-            // 2. Gambar gambar asli ke canvas sementara
-            tempCtx.drawImage(originalImage, 0, 0);
-            
-            // 3. Dapatkan data piksel resolusi penuh
-            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, width, height);
             const data = imageData.data;
             
-            // 4. Terapkan efek (simulasi)
-            switch(currentTechnique) {
-                case 'inverse':
-                    applySharpenEffect(data); break;
-                case 'wiener':
-                    applySmoothEffect(data); break;
-                case 'lucy':
-                    applyEnhancementEffect(data); break;
+            // Apply sharpening filter using convolution matrix
+            // The HTML5 canvas element can be used to write image filters by manipulating pixels directly. [[7]]
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(originalImage, 0, 0, width, height);
+            
+            const tempImageData = tempCtx.getImageData(0, 0, width, height);
+            const tempData = tempImageData.data;
+            
+            // Create a copy for convolution
+            const outputData = new Uint8ClampedArray(tempData.length);
+            
+            // Sharpening kernel matrix
+            const kernel = [
+                [-1, -1, -1],
+                [-1,  9, -1],
+                [-1, -1, -1]
+            ];
+            
+            // Apply convolution
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    let r = 0, g = 0, b = 0;
+                    
+                    // Apply kernel
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const pixelIndex = ((y + ky) * width + (x + kx)) * 4;
+                            const kernelValue = kernel[ky + 1][kx + 1];
+                            
+                            r += tempData[pixelIndex] * kernelValue;
+                            g += tempData[pixelIndex + 1] * kernelValue;
+                            b += tempData[pixelIndex + 2] * kernelValue;
+                        }
+                    }
+                    
+                    const index = (y * width + x) * 4;
+                    
+                    // Apply sharpening amount and clamp values
+                    outputData[index] = clamp(r * sharpenAmount, 0, 255);
+                    outputData[index + 1] = clamp(g * sharpenAmount, 0, 255);
+                    outputData[index + 2] = clamp(b * sharpenAmount, 0, 255);
+                    outputData[index + 3] = 255; // Alpha channel
+                }
             }
             
-            // 5. Kembalikan data yang dimodifikasi ke canvas sementara
-            tempCtx.putImageData(imageData, 0, 0);
-
-            // 6. Buat Image object baru dari canvas sementara
-            const simulatedResultImage = new Image();
-            await new Promise((resolve, reject) => {
-                simulatedResultImage.onload = resolve;
-                simulatedResultImage.onerror = reject;
-                simulatedResultImage.src = tempCanvas.toDataURL('image/png');
-            });
-
-            processedImage = simulatedResultImage; // Simpan gambar hasil (resolusi penuh)
-            drawImageOnCanvas(resultCtx, processedImage); // Tampilkan di canvas hasil
-
-            // 8. Update UI
-            hasResult = true;
-            const techniqueNames = {
-                'inverse': 'Filtering Invers (Simulasi)',
-                'wiener': 'Filtering Wiener (Simulasi)',
-                'lucy': 'Lucy-Richardson (Simulasi)',
-            };
-            document.getElementById('resultInfo').textContent = 
-                `Diterapkan: ${techniqueNames[currentTechnique]}`;
-        }
-
-        // --- Fungsi Efek Simulasi ---
-        function applySharpenEffect(data) {
-            for (let i = 0; i < data.length; i += 4) {
-                data[i] = Math.min(255, data[i] * 1.1);
-                data[i + 1] = Math.min(255, data[i + 1] * 1.1);
-                data[i + 2] = Math.min(255, data[i + 2] * 1.1);
+            // Handle edges (copy original)
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    if (x === 0 || x === width - 1 || y === 0 || y === height - 1) {
+                        const index = (y * width + x) * 4;
+                        const origIndex = index;
+                        outputData[index] = tempData[origIndex];
+                        outputData[index + 1] = tempData[origIndex + 1];
+                        outputData[index + 2] = tempData[origIndex + 2];
+                        outputData[index + 3] = 255;
+                    }
+                }
             }
+            
+            // Create new image data with sharpened result
+            const sharpenedImageData = new ImageData(outputData, width, height);
+            
+            // Apply contrast enhancement
+            applyContrastEnhancement(sharpenedImageData, contrastAmount);
+            
+            // Draw the result
+            ctx.putImageData(sharpenedImageData, 0, 0);
         }
-        function applySmoothEffect(data) {
+
+        // Apply contrast enhancement
+        function applyContrastEnhancement(imageData, contrast) {
+            const data = imageData.data;
+            const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+            
             for (let i = 0; i < data.length; i += 4) {
-                data[i] = Math.max(0, data[i] * 0.95 + 10);
-                data[i + 1] = Math.max(0, data[i + 1] * 0.95 + 10);
-                data[i + 2] = Math.max(0, data[i + 2] * 0.95 + 10);
-            }
-        }
-        function applyEnhancementEffect(data) {
-            for (let i = 0; i < data.length; i += 4) {
-                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                const factor = 1.2;
-                data[i] = Math.min(255, avg + (data[i] - avg) * factor);
-                data[i + 1] = Math.min(255, avg + (data[i + 1] - avg) * factor);
-                data[i + 2] = Math.min(255, avg + (data[i + 2] - avg) * factor);
+                data[i] = clamp(factor * (data[i] - 128) + 128, 0, 255);     // R
+                data[i + 1] = clamp(factor * (data[i + 1] - 128) + 128, 0, 255); // G
+                data[i + 2] = clamp(factor * (data[i + 2] - 128) + 128, 0, 255); // B
             }
         }
 
-        // --- Fungsi Utilitas (Reset, Download, Resize, Loading) ---
+        // Clamp value between min and max
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
 
+        // Reset to original image
+        function resetImage() {
+            if (!originalImage) return;
+            
+            const ctx = resultCanvas.getContext('2d');
+            ctx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+            ctx.drawImage(originalImage, 0, 0, resultCanvas.width, resultCanvas.height);
+            
+            sharpenSlider.value = 1.0;
+            contrastSlider.value = 1.2;
+            sharpenValue.textContent = sharpenSlider.value;
+            contrastValue.textContent = contrastSlider.value;
+            downloadBtn.disabled = true;
+        }
+
+        // Download result
         function downloadResult() {
-            if (!hasResult || !processedImage) {
-                alert("Tidak ada gambar hasil untuk diunduh.");
-                return;
-            }
-
-            // Buat canvas baru dengan resolusi asli dari gambar yang diproses
-            const downloadCanvas = document.createElement('canvas');
-            downloadCanvas.width = processedImage.naturalWidth; // Gunakan resolusi asli
-            downloadCanvas.height = processedImage.naturalHeight;
-            const downloadCtx = downloadCanvas.getContext('2d');
-            
-            // Gambar gambar yang sudah diproses ke canvas ini
-            downloadCtx.drawImage(processedImage, 0, 0);
-
-            // Siapkan nama file
-            const techniqueNames = {
-                'inverse': 'simulasi_invers',
-                'wiener': 'simulasi_wiener', 
-                'lucy': 'simulasi_lucy',
-                'ai': 'ai_deblur' // Diubah dari 'clipdrop'
-            };
-            
-            const filename = `hasil_deblur_${techniqueNames[currentTechnique] || 'diproses'}.png`;
-            
-            // Buat link download dari canvas baru
             const link = document.createElement('a');
-            link.download = filename;
-            link.href = downloadCanvas.toDataURL('image/png'); // Selalu buat data URL baru
+            link.download = 'foto_tajam_' + new Date().getTime() + '.png';
+            link.href = resultCanvas.toDataURL('image/png');
             link.click();
         }
 
-        function resetResultCanvas() {
-            processedImage = null;
-            hasResult = false;
-            resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
-            drawPlaceholder(resultCtx, 'Hasil penghilangan blur akan muncul di sini');
-            document.getElementById('downloadResultBtn').disabled = true;
-            document.getElementById('resultInfo').textContent = 'Pilih teknik dan klik "Hilangkan Blur" untuk melihat hasil';
+        // Initialize page
+        function init() {
+            // Setup canvas contexts
+            originalCanvas.getContext('2d');
+            resultCanvas.getContext('2d');
+            
+            // Clear canvases initially
+            const origCtx = originalCanvas.getContext('2d');
+            const resCtx = resultCanvas.getContext('2d');
+            
+            // Set initial canvas sizes
+            originalCanvas.width = 400;
+            originalCanvas.height = 400;
+            resultCanvas.width = 400;
+            resultCanvas.height = 400;
+            
+            // Draw placeholder text
+            origCtx.fillStyle = '#95a5a6';
+            origCtx.font = '16px Arial';
+            origCtx.textAlign = 'center';
+            origCtx.fillText('Upload foto Anda di sini', 200, 200);
+            
+            resCtx.fillStyle = '#95a5a6';
+            resCtx.font = '16px Arial';
+            resCtx.textAlign = 'center';
+            resCtx.fillText('Hasil akan muncul di sini', 200, 200);
         }
 
-        function resetAll() {
-            originalImage = null;
-            currentTechnique = null;
-            
-            drawPlaceholder(uploadCtx, 'Unggah gambar blur Anda');
-            resetResultCanvas();
-            
-            document.querySelectorAll('.technique-card').forEach(c => c.classList.remove('active'));
-            document.getElementById('deblurBtn').disabled = true;
-            document.getElementById('resetBtn').disabled = true;
-            setLoading(false);
-        }
-
-        function handleResize() {
-            // Ubah ukuran canvas agar sesuai dengan container baru
-            const uploadCanvasContainer = document.getElementById('uploadCanvasContainer');
-            uploadCanvas.width = uploadCanvasContainer.offsetWidth;
-            
-            const resultCanvasContainer = document.getElementById('resultCanvasContainer');
-            resultCanvas.width = resultCanvasContainer.offsetWidth;
-            
-            // Gambar ulang canvas upload
-            if (originalImage) {
-                drawImageOnCanvas(uploadCtx, originalImage); 
-            } else {
-                drawPlaceholder(uploadCtx, 'Unggah gambar blur Anda');
-            }
-            
-            // Gambar ulang canvas hasil
-            if (hasResult && processedImage) { 
-                drawImageOnCanvas(resultCtx, processedImage); // Gambar ulang dari gambar hasil
-            } else {
-                drawPlaceholder(resultCtx, 'Hasil penghilangan blur akan muncul di sini');
-            }
-        }
-
-        function setLoading(isLoading) {
-            document.getElementById('loadingIndicator').style.display = isLoading ? 'block' : 'none';
-            document.getElementById('deblurBtn').disabled = isLoading || !originalImage || !currentTechnique;
-            document.getElementById('resetBtn').disabled = isLoading;
-            document.querySelectorAll('.technique-card').forEach(card => {
-                card.style.pointerEvents = isLoading ? 'none' : 'auto';
-            });
-        }
+        // Initialize the page
+        init();
     </script>
 </body>
 </html>
